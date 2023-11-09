@@ -1,6 +1,12 @@
 close all; clear; clc
+%% Load the data
 load('exampledataset.mat')
+% explore the data
+
+% 121695 voxels
 numvoxels = size(data{1},1);
+
+% produce the spatial map at one time-point
 onetimepoint = data{1}(:);
 onetimepoint = onetimepoint(imglookup);
 onetimepoint(extrapmask) = NaN;
@@ -9,12 +15,21 @@ subplot(121)
 imagesc(onetimepoint)
 title('One time point')
 image = onetimepoint;
+
+% Convert the image to double precision
 image = im2double(image);
-spatial_sigma = 2.0;   
-intensity_sigma = 0.1; 
-window_size = 5; 
+
+% Define the parameters
+spatial_sigma = 2.0;  % Standard deviation for the spatial domain 
+intensity_sigma = 0.1; % Standard deviation for the intensity (range) domain
+window_size = 5; % Size of the square filtering window
+
+% Get the dimensions of the input image
 [M, N] = size(image);
+
+% Initialize the output image
 filtered_image = zeros(M, N);
+% Perform bilateral filtering
 for i = 1:M
     for j = 1:N
         pixel_intensity = image(i, j);
