@@ -1,0 +1,53 @@
+close all; clear; clc
+load('exampledataset.mat')
+numvoxels = size(data{1},1);
+onetimepoint = data{1}(:);
+onetimepoint = onetimepoint(imglookup);
+onetimepoint(extrapmask) = NaN;
+figure(1), clf
+subplot(121)
+imagesc(onetimepoint)
+title('One time point')
+image = onetimepoint;
+image = im2double(image);
+spatial_sigma = 2.0;   
+intensity_sigma = 0.1; 
+window_size = 5; 
+[M, N] = size(image);
+filtered_image = zeros(M, N);
+for i = 1:M
+    for j = 1:N
+        pixel_intensity = image(i, j);
+        weighted_sum = 0;
+        normalization_factor = 0;
+        
+        % Define the spatial and intensity (range) window
+        for x = max(1, i - window_size):min(M, i + window_size)
+            for y = max(1, j - window_size):min(N, j + window_size)
+                % Compute spatial and range differences
+                spatial_difference = sqrt((i - x)^2 + (j - y)^2);
+                range_difference = (abs(image(x, y) - pixel_intensity))^2;
+                
+                % Calculate the bilateral filter weight
+                weight = exp(-spatial_difference / (2 * spatial_sigma^2) - range_difference / (2 * intensity_sigma^2));
+                
+                % Update the weighted sum and normalization factor
+                weighted_sum = weighted_sum + weight * image(x, y);
+                normalization_factor = normalization_factor + weight;
+            end
+        end
+        
+        % Normalize the filtered pixel value
+        filtered_image(i, j) = weighted_sum / normalization_factor;
+    end
+end
+
+% Display the original and filtered images
+figure;
+subplot(1, 2, 1);
+imagesc(image);
+title('Original Image');
+
+subplot(1, 2, 2);
+imagesc(filtered_image);
+title('Filtered Image');
